@@ -1,170 +1,258 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const crypto = require('crypto');
 const path = require('path');
 
 /**
- * PRODUCTION-READY LAN & CLOUD SERVER
- * Optimized for local LAN environments and Render deployment.
+ * VIRTUAL LAN NETWORK ACCESS SERVER (OS PROJECT ENHANCED)
+ * Demonstrates: Multithreading simulation, Synchronization, and Room Isolation.
  */
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// Serve static files from current directory
 app.use(express.static(__dirname));
 
 // --- State Management ---
-const THREAD_POOL_CAPACITY = 20; // Expanded for production
-let totalRequests = 0;
-let activeUsers = {}; // socketId -> userObject
+const THREAD_POOL_CAPACITY = 10; // Reduced for better UI visualization
+let globalRequests = 0;
+let activeUsers = {}; // socket.id -> userObject
 let serverLogs = [];
-let nextThreadId = 1;
+
+// Room-specific metadata: roomID -> { requests: N, threads: [ { id, status, lastUsed } ] }
+let roomMetadata = {};
 
 // --- Helper Functions ---
 
 /**
- * Tracks and broadcasts system logs
+ * Generates a unique SHA-256 hash from network SSID and Password
  */
-function addLog(type, message) {
-    const timestamp = new Date().toISOString();
-    const logEntry = { timestamp, type, message };
-    serverLogs.push(logEntry);
-    
-    // Keep internal log buffer manageable
-    if (serverLogs.length > 200) serverLogs.shift();
-    
-    // Broadcast live logs to authenticated admins
-    io.to('admin_room').emit('server_log', logEntry);
+function hashNetwork(ssid, password) {
+    const secret = `${ssid}:${password}:CoreOS`;
+    return crypto.createHash('sha256').update(secret).digest('hex').substring(0, 16);
+}
+
+function initializeRoom(roomID) {
+    if (!roomMetadata[roomID]) {
+        roomMetadata[roomID] = {
+            requests: 0,
+            threads: Array.from({ length: THREAD_POOL_CAPACITY }, (_, i) => ({
+                id: i + 1,
+                status: 'IDLE',
+                lastUsed: Date.now()
+            }))
+        };
+    }
 }
 
 /**
- * Broadcasts real-time statistics to all connected clients
+ * Simulates thread allocation. Marks a thread as BUSY for a short duration.
  */
-function broadcastStats() {
-    const stats = {
-        threadCount: THREAD_POOL_CAPACITY,
-        totalRequests: totalRequests,
-        activeClients: Object.keys(activeUsers).length,
-        users: Object.values(activeUsers)
-    };
-    io.emit('update_stats', stats);
+function allocateThread(roomID) {
+    initializeRoom(roomID);
+    const room = roomMetadata[roomID];
+    
+    // Simple allocation: find first idle or oldest busy thread (simulation)
+    let threadIndex = room.threads.findIndex(t => t.status === 'IDLE');
+    if (threadIndex === -1) {
+        // Force pick one if all busy (synchronization bottleneck simulation)
+        threadIndex = Math.floor(Math.random() * THREAD_POOL_CAPACITY);
+    }
+
+    const thread = room.threads[threadIndex];
+    thread.status = 'BUSY';
+    thread.lastUsed = Date.now();
+
+    // Reset to IDLE after simulated "processing time" (800-1500ms)
+    const processingTime = 800 + Math.random() * 700;
+    setTimeout(() => {
+        thread.status = 'IDLE';
+        broadcastRoomStats(roomID);
+    }, processingTime);
+
+    return thread.id;
+}
+
+function addLog(type, message, roomID = 'global') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = { timestamp, type, message, roomID };
+    serverLogs.push(logEntry);
+    if (serverLogs.length > 200) serverLogs.shift();
+    
+    // Broadcast live logs to room admins
+    io.to(`admin_room_${roomID}`).emit('server_log', logEntry);
+    // Also send to global if it's not already global
+    if (roomID !== 'global') {
+        io.to(`admin_room_global`).emit('server_log', logEntry);
+    }
+}
+
+/**
+ * Broadcasts statistics scoped to a specific virtual LAN
+ */
+function broadcastRoomStats(roomID) {
+    initializeRoom(roomID);
+    const room = roomMetadata[roomID];
+    const roomUsers = Object.values(activeUsers).filter(u => u.roomID === roomID);
+    
+    io.to(roomID).emit('update_stats', {
+        threadPool: room.threads,
+        totalRequests: room.requests,
+        globalRequests: globalRequests,
+        activeClients: roomUsers.length,
+        users: roomUsers,
+        networkHash: roomID,
+        threadCapacity: THREAD_POOL_CAPACITY
+    });
 }
 
 // --- Socket.IO Logic ---
 
 io.on('connection', (socket) => {
-    totalRequests++; // Initial connection request
-    
-    // Auto-assign a unique worker thread ID (Round Robin strategy)
-    const assignedThread = nextThreadId;
-    nextThreadId = (nextThreadId % THREAD_POOL_CAPACITY) + 1;
+    addLog('SYSTEM', `Unidentified Node Connected: ${socket.id}`);
 
-    // Initialize user session
-    activeUsers[socket.id] = {
-        id: socket.id,
-        username: `User_${Math.floor(1000 + Math.random() * 9000)}`,
-        threadId: assignedThread,
-        isAdmin: false,
-        online: true
-    };
+    socket.emit('init_pre_access', { id: socket.id });
 
-    addLog('INFO', `Node Connection: ${socket.id} (Worker-${assignedThread})`);
+    // Event: Joining a Virtual LAN
+    socket.on('join_network', (credentials) => {
+        const { ssid, password } = credentials;
+        if (!ssid || !password) return socket.emit('error_message', 'Invalid Credentials');
 
-    // Initial configuration handshake
-    socket.emit('init_config', {
-        id: socket.id,
-        threadId: assignedThread,
-        threadCount: THREAD_POOL_CAPACITY,
-        username: activeUsers[socket.id].username
+        const roomID = hashNetwork(ssid, password);
+        initializeRoom(roomID);
+        
+        const threadId = allocateThread(roomID);
+        globalRequests++;
+        roomMetadata[roomID].requests++;
+
+        socket.join(roomID);
+
+        activeUsers[socket.id] = {
+            id: socket.id,
+            username: `Node_${Math.floor(100 + Math.random() * 900)}`,
+            threadId: threadId,
+            isAdmin: false,
+            roomID: roomID,
+            ssid: ssid,
+            joinedAt: Date.now()
+        };
+
+        addLog('INFO', `Node Joined Network [${ssid}] via Worker-${threadId}`, roomID);
+
+        socket.emit('network_joined', {
+            id: socket.id,
+            ssid: ssid,
+            roomID: roomID,
+            threadId: threadId,
+            threadCount: THREAD_POOL_CAPACITY,
+            username: activeUsers[socket.id].username
+        });
+
+        broadcastRoomStats(roomID);
     });
-
-    broadcastStats();
 
     // Event: Identity Update
     socket.on('set_username', (name) => {
+        const user = activeUsers[socket.id];
+        if (!user) return;
+
         const sanitizedName = name.trim().substring(0, 20);
         if (sanitizedName) {
-            const oldName = activeUsers[socket.id].username;
-            activeUsers[socket.id].username = sanitizedName;
+            const oldName = user.username;
+            user.username = sanitizedName;
             
-            addLog('INFO', `Identity Change: ${oldName} -> ${sanitizedName}`);
+            allocateThread(user.roomID);
+            addLog('INFO', `Identity Re-sync: ${oldName} -> ${sanitizedName}`, user.roomID);
             
-            // Broadcast specialized rename event for UI sounds/notifications
-            io.emit('user_renamed', {
+            io.to(user.roomID).emit('user_renamed', {
                 oldName,
                 newName: sanitizedName,
                 id: socket.id
             });
             
-            broadcastStats();
+            broadcastRoomStats(user.roomID);
         }
     });
 
     // Event: Chat Transmission
     socket.on('chat_message', (text) => {
+        const user = activeUsers[socket.id];
+        if (!user) return;
+
         const sanitizedText = text.trim();
         if (!sanitizedText) return;
 
-        totalRequests++; // Message counts as a processed request
-        const sender = activeUsers[socket.id];
-        
+        const threadId = allocateThread(user.roomID);
+        globalRequests++;
+        roomMetadata[user.roomID].requests++;
+
         const messageData = {
             id: Date.now() + Math.random().toString(36).substr(2, 9),
-            senderId: sender.id,
-            senderName: sender.username,
-            senderThread: sender.threadId,
+            senderId: user.id,
+            senderName: user.username,
+            senderThread: threadId,
             text: sanitizedText,
+            roomName: user.ssid,
             timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
         };
         
-        io.emit('chat_broadcast', messageData);
-        addLog('CHAT', `Message Transmitted from ${sender.username}`);
+        io.to(user.roomID).emit('chat_broadcast', messageData);
+        addLog('CHAT', `Broadcast from ${user.username} (Proc by W-${threadId})`, user.roomID);
         
-        broadcastStats();
+        broadcastRoomStats(user.roomID);
     });
 
     // Event: Admin Authorization
     socket.on('auth_admin', (password) => {
-        // Simple secure password verification for demo purposes
+        const user = activeUsers[socket.id];
+        if (!user) return;
+
         if (password === 'admin123') {
-            activeUsers[socket.id].isAdmin = true;
-            socket.join('admin_room');
-            socket.emit('admin_auth_success', serverLogs);
-            addLog('WARN', `Admin Session Authenticated: ${sender.username}`);
-            broadcastStats();
+            user.isAdmin = true;
+            socket.join(`admin_room_${user.roomID}`);
+            
+            const roomLogs = serverLogs.filter(l => l.roomID === user.roomID);
+            socket.emit('admin_auth_success', roomLogs);
+            
+            addLog('WARN', `Admin Escalation: ${user.username}`, user.roomID);
+            broadcastRoomStats(user.roomID);
         } else {
-            socket.emit('admin_auth_failed', 'Authentication Error: Invalid Key');
+            socket.emit('admin_auth_failed', 'Protocol Error: Unauthorized Access');
         }
     });
 
-    // Event: Termination
+    // Event: Network Departure
+    socket.on('leave_network', () => {
+        const user = activeUsers[socket.id];
+        if (user) {
+            const roomID = user.roomID;
+            addLog('INFO', `Node Terminated Connection: ${user.username}`, roomID);
+            
+            socket.leave(roomID);
+            socket.leave(`admin_room_${roomID}`);
+            
+            delete activeUsers[socket.id];
+            broadcastRoomStats(roomID);
+        }
+    });
+
     socket.on('disconnect', () => {
         const user = activeUsers[socket.id];
         if (user) {
-            addLog('INFO', `Node Termination: ${user.username} (${socket.id})`);
+            const roomID = user.roomID;
+            addLog('SYSTEM', `Node Signal Lost: ${user.username}`, roomID);
             delete activeUsers[socket.id];
-            broadcastStats();
+            broadcastRoomStats(roomID);
         }
     });
 });
 
-// --- Server Startup ---
-
 const PORT = process.env.PORT || 3000;
-
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n================================================`);
-    console.log(`🚀 Core-OS PROJECT SERVER ACTIVE`);
-    console.log(`📡 Local Access:  http://localhost:${PORT}`);
-    console.log(`🌐 LAN Network:   http://0.0.0.0:${PORT}`);
-    console.log(`☁️ Cloud Ready:   Port ${PORT} (Environment Variable)`);
-    console.log(`================================================\n`);
-    addLog('SYSTEM', `Production runtime initialized on port ${PORT}`);
+    console.log(`\n🚀 [V-LAN OS ENGINE] RUNNING ON PORT: ${PORT}`);
+    console.log(`📡 Multithreaded Synchronization Ready.\n`);
 });

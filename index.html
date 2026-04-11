@@ -1,1112 +1,1409 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core-OS | LAN Dynamic Node</title>
+    <title>Core-OS | Multithreading Web Server</title>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-:root {
-    /* Theme: Deep Space (Dark) */
-    --bg-base: #030712;
-    --bg-accent: #0f172a;
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-hover: rgba(255, 255, 255, 0.06);
-    
-    --neon-blue: #0ea5e9;
-    --neon-purple: #8b5cf6;
-    --neon-pink: #ec4899;
-    --neon-green: #10b981;
-    
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    
-    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.3);
-    --radius-lg: 24px;
-    --radius-md: 16px;
-    --radius-sm: 8px;
-}
-
-[data-theme="light"] {
-    --bg-base: #f8fafc;
-    --bg-accent: #f1f5f9;
-    --glass-bg: rgba(0, 0, 0, 0.03);
-    --glass-border: rgba(0, 0, 0, 0.08);
-    --glass-hover: rgba(0, 0, 0, 0.06);
-    
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    
-    --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-}
-
-body {
-    background-color: var(--bg-base);
-    color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
-    transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-/* Background Atmosphere */
-.bg-blobs {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    overflow: hidden;
-}
-
-.blob {
-    position: absolute;
-    width: 40vw;
-    height: 40vw;
-    background: radial-gradient(circle, var(--neon-blue) 0%, transparent 70%);
-    filter: blur(100px);
-    opacity: 0.15;
-    animation: blob-float 15s infinite alternate;
-}
-
-.blob-1 { top: -10%; left: -10%; background: var(--neon-blue); }
-.blob-2 { bottom: -10%; right: -10%; background: var(--neon-purple); animation-delay: -5s; }
-.blob-3 { top: 40%; left: 40%; background: var(--neon-pink); opacity: 0.1; animation-duration: 20s; }
-
-@keyframes blob-float {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(10%, 10%) scale(1.2); }
-}
-
-/* Layout System */
-.app-container {
-    display: grid;
-    grid-template-areas: 
-        "header"
-        "stats"
-        "sidebar"
-        "main"
-        "footer";
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    max-width: 1600px;
-    margin: 0 auto;
-}
-
-@media (min-width: 640px) and (max-width: 1023px) {
-    .app-container {
-        grid-template-areas: 
-            "header header"
-            "stats stats"
-            "sidebar main"
-            "footer footer";
-        grid-template-columns: 1fr 1.5fr;
-    }
-}
-
-@media (min-width: 1024px) {
-    .app-container {
-        grid-template-areas: 
-            "header header"
-            "stats stats"
-            "sidebar main"
-            "footer footer";
-        grid-template-columns: 320px 1fr;
-    }
-    
-    .stats-section {
-        grid-area: stats;
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr);
-        margin-top: 0.5rem;
-    }
-}
-
-@media (min-width: 1440px) {
-    .app-container {
-        max-width: 1400px;
-        gap: 2.5rem;
-    }
-}
-
-/* Header */
-header {
-    grid-area: header;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 0;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.logo {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-}
-
-.brand-info h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-.brand-info p {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.theme-toggle, .sound-toggle {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: var(--text-primary);
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.theme-toggle:hover, .sound-toggle:hover {
-    background: var(--glass-hover);
-    transform: rotate(15deg);
-}
-
-.sound-toggle.muted {
-    color: var(--neon-pink);
-    border-color: var(--neon-pink);
-}
-
-/* Stats Section */
-.stats-section {
-    grid-area: stats;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.stat-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    padding: 1.25rem;
-    border-radius: var(--radius-md);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    transition: transform var(--transition-fast);
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--neon-blue);
-}
-
-.stat-card i {
-    font-size: 1.25rem;
-    color: var(--neon-blue);
-}
-
-.stat-card .label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.stat-card .value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-/* Main Dashboard Grid */
-.sidebar {
-    grid-area: sidebar;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-main {
-    grid-area: main;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-/* Glass Card Component */
-.glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.card-header {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--glass-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-header h2 {
-    font-size: 1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-/* Chat Section */
-.chat-panel {
-    flex: 1;
-    min-height: 500px;
-}
-
-.chat-messages {
-    flex: 1;
-    padding: 1.5rem;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--glass-border) transparent;
-}
-
-.message-wrapper {
-    display: flex;
-    flex-direction: column;
-    max-width: 80%;
-    animation: message-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.message-wrapper.self {
-    align-self: flex-end;
-}
-
-.message-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-bottom: 0.25rem;
-    padding: 0 0.5rem;
-}
-
-.message-bubble {
-    padding: 0.75rem 1.25rem;
-    border-radius: 18px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    background: var(--bg-accent);
-    color: var(--text-primary);
-    border: 1px solid var(--glass-border);
-    position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.message-wrapper.self .message-bubble {
-    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-    color: white;
-    border: none;
-    border-bottom-right-radius: 4px;
-}
-
-.message-wrapper:not(.self) .message-bubble {
-    border-bottom-left-radius: 4px;
-}
-
-@keyframes message-in {
-    from { opacity: 0; transform: translateY(10px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Chat Input */
-.chat-input-area {
-    padding: 1.25rem 1.5rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid var(--glass-border);
-}
-
-.input-container {
-    display: flex;
-    gap: 0.75rem;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    padding: 0.5rem;
-    border-radius: var(--radius-md);
-    transition: var(--transition-fast);
-}
-
-.input-container:focus-within {
-    border-color: var(--neon-blue);
-    box-shadow: var(--shadow-glow);
-}
-
-input.chat-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text-primary);
-    padding: 0.5rem;
-    font-size: 0.95rem;
-}
-
-.btn-send {
-    background: var(--neon-blue);
-    color: white;
-    border: none;
-    padding: 0.5rem 1.25rem;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-weight: 600;
-    transition: var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-send:hover {
-    background: #0284c7;
-    transform: scale(1.05);
-}
-
-.btn-send:active {
-    transform: scale(0.95);
-}
-
-/* User List */
-.users-list {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.user-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-    transition: var(--transition-fast);
-    cursor: default;
-}
-
-.user-item:hover {
-    background: var(--glass-hover);
-}
-
-.user-item.is-me {
-    background: rgba(14, 165, 233, 0.1);
-    border: 1px solid rgba(14, 165, 233, 0.2);
-}
-
-.avatar {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    background: var(--bg-accent);
-    color: var(--neon-blue);
-    border: 2px solid var(--glass-border);
-}
-
-.status-indicator {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 10px;
-    height: 10px;
-    background: var(--neon-green);
-    border: 2px solid var(--bg-base);
-    border-radius: 50%;
-}
-
-.status-indicator.pulse::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: inherit;
-    border-radius: inherit;
-    animation: status-pulse 1.5s infinite;
-}
-
-@keyframes status-pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(3); opacity: 0; }
-}
-
-.user-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.user-name {
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.user-details {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-}
-
-/* Admin Terminal */
-.admin-terminal {
-    background: #000;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--neon-pink);
-    color: #a7f3d0;
-    font-family: 'JetBrains Mono', monospace;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 300px;
-}
-
-.terminal-header {
-    background: #111;
-    padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid rgba(236, 72, 153, 0.3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.terminal-controls {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.control {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-}
-
-.control.red { background: #ff5f57; }
-.control.yellow { background: #febc2e; }
-.control.green { background: #28c840; }
-
-.terminal-body {
-    flex: 1;
-    padding: 1rem;
-    overflow-y: auto;
-    font-size: 0.8rem;
-    line-height: 1.4;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.log-line {
-    animation: log-fade 0.3s ease-out;
-}
-
-.log-line .time { color: var(--text-muted); margin-right: 0.5rem; }
-.log-line .tag { padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 700; margin-right: 0.5rem; font-size: 0.65rem; }
-.log-line .tag.info { background: rgba(14, 165, 233, 0.2); color: var(--neon-blue); }
-.log-line .tag.warn { background: rgba(236, 72, 153, 0.2); color: var(--neon-pink); }
-.log-line .tag.chat { background: rgba(139, 92, 246, 0.2); color: var(--neon-purple); }
-
-@keyframes log-fade {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Progress Bars */
-.progress-container {
-    height: 4px;
-    background: var(--glass-border);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 0.5rem;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-    width: 0%;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Typing Indicator */
-.typing-indicator {
-    display: none;
-    padding: 0.5rem 1.5rem;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-.typing-dot {
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    background: var(--text-muted);
-    border-radius: 50%;
-    margin-right: 2px;
-    animation: typing-bounce 1.4s infinite;
-}
-
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typing-bounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-4px); }
-}
-
-/* Modal / Prompt Overlay */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-}
-
-.modal {
-    background: var(--bg-accent);
-    border: 1px solid var(--glass-border);
-    padding: 2rem;
-    border-radius: var(--radius-lg);
-    max-width: 400px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
+        :root {
+            /* Futuristic Cyberpunk Palette */
+            --bg-deep: #020617;
+            --bg-surface: rgba(15, 23, 42, 0.6);
+            --bg-accent: rgba(30, 41, 59, 0.8);
+
+            --neon-blue: #0ea5e9;
+            --neon-purple: #8b5cf6;
+            --neon-pink: #f43f5e;
+            --neon-green: #10b981;
+            --neon-cyan: #06b6d4;
+            --neon-gold: #f59e0b;
+
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-glow: rgba(14, 165, 233, 0.15);
+
+            --radius-xl: 32px;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-deep: #f8fafc;
+            --bg-surface: rgba(255, 255, 255, 0.7);
+            --bg-accent: rgba(241, 245, 249, 0.9);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- Background Effects --- */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.15;
+            animation: float 20s infinite alternate;
+        }
+
+        .orb-1 {
+            top: -10%;
+            left: -5%;
+            background: var(--neon-blue);
+        }
+
+        .orb-2 {
+            bottom: -10%;
+            right: -5%;
+            background: var(--neon-purple);
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            top: 40%;
+            left: 30%;
+            background: var(--neon-cyan);
+            opacity: 0.1;
+            animation-duration: 25s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(100px, 50px) scale(1.1);
+            }
+        }
+
+        /* --- Layout Grid --- */
+        .app-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-areas:
+                "header header header"
+                "stats stats stats"
+                "threads chat users"
+                "admin admin admin";
+            grid-template-columns: 320px 1fr 300px;
+            gap: 1.5rem;
+            opacity: 0;
+            filter: blur(20px);
+            transition: opacity 0.8s, filter 0.8s;
+        }
+
+        .app-wrapper.active {
+            opacity: 1;
+            filter: blur(0);
+        }
+
+        /* --- Orientation & Responsiveness --- */
+        @media (max-width: 1400px) {
+            .app-wrapper {
+                grid-template-columns: 280px 1fr 280px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .app-wrapper {
+                grid-template-areas:
+                    "header header"
+                    "stats stats"
+                    "threads users"
+                    "chat chat"
+                    "admin admin";
+                grid-template-columns: 320px 1fr;
+            }
+        }
+
+        /* Portrait Tablet & Large Mobile */
+        @media (max-width: 1024px) and (orientation: portrait) {
+            .app-wrapper {
+                grid-template-areas:
+                    "header header"
+                    "stats stats"
+                    "threads users"
+                    "chat chat"
+                    "admin admin";
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Mobile Landscape (Critical Height Fix) */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .app-wrapper {
+                padding: 0.75rem;
+                grid-template-areas:
+                    "header header"
+                    "stats stats"
+                    "threads chat"
+                    "admin admin";
+                grid-template-columns: 1fr 1.5fr;
+                gap: 0.75rem;
+            }
+
+            .stats-grid {
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .stat-data .val {
+                font-size: 1.25rem;
+            }
+
+            header {
+                padding: 0.5rem 0;
+                margin-bottom: 0;
+            }
+
+            .logo-box {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+
+            .chat-panel {
+                min-height: 300px;
+            }
+
+            .admin-panel {
+                margin-top: 0.5rem;
+            }
+
+            .terminal {
+                height: 150px;
+            }
+        }
+
+        /* Mobile Portrait Stack */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .app-wrapper {
+                grid-template-areas: "header" "stats" "threads" "chat" "users" "admin";
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* --- Glassmorphism Components --- */
+        .glass-panel {
+            background: var(--bg-surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(14, 165, 233, 0.3);
+            box-shadow: 0 0 30px var(--glass-glow);
+        }
+
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .panel-header i {
+            color: var(--neon-blue);
+        }
+
+        /* --- Header --- */
+        header {
+            grid-area: header;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .logo-box {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: white;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+            animation: pulse-glow 3s infinite;
+        }
+
+        .brand-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text .status-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .badge-pulse {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-green);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .net-info {
+            text-align: right;
+        }
+
+        .net-info .hash {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .btn-theme {
+            background: var(--bg-accent);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-theme:hover {
+            transform: rotate(15deg);
+            border-color: var(--neon-gold);
+        }
+
+        /* --- Stats Dashboard --- */
+        .stats-grid {
+            grid-area: stats;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-md);
+            background: rgba(14, 165, 233, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--neon-blue);
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            color: var(--neon-purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            color: var(--neon-pink);
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            color: var(--neon-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .stat-data .val {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            display: block;
+        }
+
+        .stat-data .lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Thread Pool Visualizer --- */
+        .threads-panel {
+            grid-area: threads;
+        }
+
+        .thread-grid {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .thread-node {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .thread-node.active {
+            background: rgba(14, 165, 233, 0.1);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+            animation: node-pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes node-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(0.98);
+            }
+        }
+
+        .thread-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .thread-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .thread-status {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .status-idle {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--neon-green);
+        }
+
+        .status-busy {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--neon-pink);
+        }
+
+        .thread-progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .thread-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--neon-blue);
+            transition: width 0.3s;
+        }
+
+        .active .thread-progress-bar {
+            width: 100%;
+            animation: progress-fill 1s linear infinite;
+        }
+
+        @keyframes progress-fill {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        /* --- Chat Panel --- */
+        .chat-panel {
+            grid-area: chat;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
+        }
+
+        .msg-wrapper {
+            max-width: 80%;
+            animation: msg-slide 0.4s ease-out forwards;
+        }
+
+        .msg-wrapper.self {
+            align-self: flex-end;
+        }
+
+        @keyframes msg-slide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            gap: 0.5rem;
+            padding-left: 8px;
+        }
+
+        .msg-bubble {
+            padding: 0.85rem 1.25rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            background: var(--bg-accent);
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .self .msg-bubble {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+            border: none;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .self .msg-meta {
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        .msg-tag {
+            font-size: 0.65rem;
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--neon-blue);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        .self .msg-tag {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .chat-input-row {
+            padding: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            color: white;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            border-color: var(--neon-blue);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-send {
+            background: var(--neon-blue);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: var(--transition);
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(14, 165, 233, 0.4);
+        }
+
+        .rename-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .rename-hint b {
+            color: var(--neon-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* --- Users Sidebar --- */
+        .users-panel {
+            grid-area: users;
+        }
+
+        .user-list {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            transition: var(--transition);
+        }
+
+        .user-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--glass-border);
+        }
+
+        .user-card.me {
+            border-color: var(--neon-blue);
+            background: rgba(14, 165, 233, 0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .user-info h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* --- Admin Terminal --- */
+        .admin-panel {
+            grid-area: admin;
+            margin-top: 1rem;
+        }
+
+        .terminal {
+            height: 250px;
+            background: #000;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            color: #d1d5db;
+            border: 1px solid #1e293b;
+        }
+
+        .log-line {
+            margin-bottom: 6px;
+            display: flex;
+            gap: 1rem;
+            animation: text-fade 0.3s ease-out;
+        }
+
+        @keyframes text-fade {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-ts {
+            color: #4b5563;
+        }
+
+        .log-type {
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .log-type.INFO {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .log-type.WARN {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+        }
+
+        .log-type.CHAT {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .log-type.SYSTEM {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .log-msg {
+            flex: 1;
+        }
+
+        /* --- Access Portal --- */
+        #access-portal {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(40px);
+            transition: var(--transition);
+        }
+
+        .portal-card {
+            width: 100%;
+            max-width: 480px;
+            padding: 3rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--neon-blue);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            box-shadow: 0 0 100px rgba(14, 165, 233, 0.2);
+        }
+
+        .portal-icon {
+            font-size: 4rem;
+            color: var(--neon-blue);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+        }
+
+        .portal-card h2 {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .portal-card p {
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+        }
+
+        .portal-input {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .portal-input label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .portal-input input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 1.15rem 1.5rem;
+            border-radius: var(--radius-md);
+            color: white;
+            outline: none;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .portal-input input:focus {
+            border-color: var(--neon-blue);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-join {
+            width: 100%;
+            padding: 1.15rem;
+            background: var(--neon-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-join:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(14, 165, 233, 0.5);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-surface);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(14, 165, 233, 0.1);
+            border-top-color: var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- Scrollbar Customization --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .system-msg {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin: 1rem 0;
+            font-style: italic;
+        }
+
+        .btn-leave {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--neon-pink);
+            border: 1px solid var(--neon-pink);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-leave:hover {
+            background: var(--neon-pink);
+            color: white;
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-accent);
+            border: 1px solid var(--neon-blue);
+            border-radius: var(--radius-md);
+            color: white;
+            display: none;
+            transform: translateY(100px);
+            transition: var(--transition);
+            z-index: 9999;
+        }
+
+        .toast.active {
+            display: flex;
+            transform: translateY(0);
+        }
     </style>
 </head>
+
 <body>
 
-    <!-- Animated Background Blobs -->
-    <div class="bg-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
+    <div class="bg-canvas">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
 
-    <div class="app-container">
-        <!-- Header Section -->
+    <!-- Access Portal -->
+    <div id="access-portal">
+        <div class="portal-card glass-panel">
+            <div class="loading-overlay" id="portal-loader">
+                <div class="spinner"></div>
+            </div>
+            <div class="portal-icon"><i class="fas fa-microchip"></i></div>
+            <h2>V-LAN Terminal</h2>
+            <p>Access the isolated multithreaded network layer.</p>
+
+            <div class="portal-input">
+                <label>Network SSID</label>
+                <input type="text" id="ssid-input" placeholder="e.g. CORE-SYSTEM-ALPHA" autocomplete="off">
+            </div>
+            <div class="portal-input">
+                <label>Security Key</label>
+                <input type="password" id="pass-input" placeholder="••••••••" autocomplete="off">
+            </div>
+
+            <button class="btn-join" id="btn-establish">Establish Node Link</button>
+            <div style="margin-top: 2rem; font-size: 0.75rem; color: var(--text-muted);">
+                <i class="fas fa-shield-halved"></i> 256-bit Room-Isolated Synchronization Layer
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="app-wrapper" id="main-interface">
         <header>
             <div class="brand">
-                <div class="logo"><i class="fas fa-microchip"></i></div>
-                <div class="brand-info">
-                    <h1>Core-OS Node</h1>
-                    <p>Distributed LAN Terminal</p>
+                <div class="logo-box"><i class="fas fa-server"></i></div>
+                <div class="brand-text">
+                    <h1 id="lan-title"
+                        style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(to right, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Multithreading Web Server for Synchronization</h1>
+                    <div class="status-row">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-top: -4px;">
+                            V-LAN CONTROLLER LAYER v2.0</div>
+                        <div class="badge-pulse"><span class="pulse-dot"></span> LAN Mode (Simulated)</div>
+                    </div>
                 </div>
             </div>
             <div class="header-actions">
-                <div id="connection-status" class="status-badge" style="display: flex; align-items: center; gap: 0.5rem; background: var(--glass-bg); padding: 0.5rem 1rem; border-radius: 50px; font-size: 0.8rem; border: 1px solid var(--glass-border);">
-                    <div class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--neon-green); position: relative;">
-                        <!-- Pulse effect via script/css -->
-                    </div>
-                    <span class="status-text">System Online</span>
+                <div class="net-info">
+                    <div id="ui-ssid-display"
+                        style="font-weight: 800; color: var(--neon-blue); text-shadow: 0 0 10px rgba(14, 165, 233, 0.5); font-size: 0.9rem;">
+                        Network: OFFLINE</div>
+                    <div id="ui-hash-display" class="hash">HASH: ----------------</div>
                 </div>
-                <button id="sound-toggle" class="sound-toggle" title="Toggle Sound Notification">
-                    <i class="fas fa-volume-up"></i>
-                </button>
-                <button id="theme-toggle" class="theme-toggle" title="Toggle Appearance">
-                    <i class="fas fa-moon"></i>
-                </button>
+                <button class="btn-theme" id="theme-toggle"><i class="fas fa-moon"></i></button>
+                <button class="btn-leave" id="btn-terminate">Leave</button>
             </div>
         </header>
 
-        <!-- Stats Overview Section -->
-        <section class="stats-section">
-            <div class="stat-card">
-                <i class="fas fa-id-badge"></i>
-                <span class="label">Worker ID</span>
-                <span id="stat-thread-id" class="value">T-00</span>
+        <section class="stats-grid">
+            <div class="glass-panel stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-data">
+                    <span class="val" id="stat-users">0</span>
+                    <span class="lbl">Active Users</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <i class="fas fa-server"></i>
-                <span class="label">Pool Capacity</span>
-                <span id="stat-worker-count" class="value">0</span>
+            <div class="glass-panel stat-card">
+                <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                <div class="stat-data">
+                    <span class="val" id="stat-requests">0</span>
+                    <span class="lbl">Target Requests</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <i class="fas fa-bolt"></i>
-                <span class="label">Total Requests</span>
-                <span id="stat-total-requests" class="value">0</span>
+            <div class="glass-panel stat-card">
+                <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                <div class="stat-data">
+                    <span class="val" id="stat-thread-pool">0</span>
+                    <span class="lbl">Thread Pool Size</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <i class="fas fa-network-wired"></i>
-                <span class="label">Active Nodes</span>
-                <span class="value">
-                    <span id="stat-active-nodes">0</span>
-                </span>
-                <div class="progress-container">
-                    <div id="nodes-progress" class="progress-bar"></div>
+            <div class="glass-panel stat-card">
+                <div class="stat-icon"><i class="fas fa-fingerprint"></i></div>
+                <div class="stat-data">
+                    <span class="val" id="stat-hash" style="font-size: 1.25rem;">----</span>
+                    <span class="lbl">Network ID Hash</span>
                 </div>
             </div>
         </section>
 
-        <!-- Main Dashboard Content -->
-        <aside class="sidebar">
-            <div class="glass-card">
-                <div class="card-header">
-                    <h2><i class="fas fa-users"></i> Active Clients</h2>
-                    <span id="users-count" style="font-size: 0.8rem; background: var(--glass-border); padding: 0.2rem 0.6rem; border-radius: 10px;">0</span>
-                </div>
-                <div id="users-list" class="users-list">
-                    <!-- User items will be injected here -->
-                    <div class="user-item" style="opacity: 0.5; justify-content: center; padding: 2rem;">
-                        <span style="font-size: 0.8rem;">Scanning network...</span>
-                    </div>
-                </div>
+        <!-- Threads Visualization -->
+        <aside class="glass-panel threads-panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-microchip"></i> Thread Allocation</h2>
+                <div style="font-size: 0.65rem; color: var(--text-muted);">Real-time CPU Simulation</div>
             </div>
-            
-            <div class="glass-card" style="margin-top: auto; padding: 1.5rem; gap: 1rem;">
-                <h3 style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Node Control</h3>
-                <button id="btn-admin-login" class="btn-send" style="background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); width: 100%; justify-content: center;">
-                    <i class="fas fa-unlock-alt"></i> Admin Interface
-                </button>
+            <div class="thread-grid" id="thread-display">
+                <!-- Threads will be rendered here -->
             </div>
         </aside>
 
-        <main>
-            <!-- Chat Interface -->
-            <div class="glass-card chat-panel">
-                <div class="card-header">
-                    <h2><i class="fas fa-comments"></i> LAN Broadcast Channel</h2>
-                    <div style="font-size: 0.7rem; color: var(--text-muted);"><i class="fas fa-lock"></i> Protected Channel</div>
-                </div>
-                
-                <div id="chat-messages" class="chat-messages">
-                    <!-- Messages will be injected here -->
-                </div>
-
-                <div id="typing-indicator" class="typing-indicator">
-                    <span class="typing-dot"></span>
-                    <span class="typing-dot"></span>
-                    <span class="typing-dot"></span>
-                    Network activity detected...
-                </div>
-
-                <div class="chat-input-area">
-                    <div class="input-container">
-                        <input type="text" id="chat-input" class="chat-input" placeholder="Enter broadcast message..." autocomplete="off">
-                        <button id="btn-send" class="btn-send">
-                            <span>Send</span>
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.65rem; color: var(--text-muted);">
-                        <span>Press <b>Enter</b> to transmit</span>
-                        <span>Type <b>/name [user]</b> to identify</span>
-                    </div>
+        <!-- Messages Area -->
+        <main class="glass-panel chat-panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-message"></i> Private Network Feed</h2>
+                <div id="sync-status" style="font-size: 0.7rem; color: var(--neon-green);">
+                    <i class="fas fa-check-circle"></i> Synchronized
                 </div>
             </div>
-
-            <!-- Admin Console (Initially Hidden by CSS logic in script) -->
-            <div id="admin-terminal" class="admin-terminal" style="display: none;">
-                <div class="terminal-header">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-terminal" style="color: var(--neon-pink);"></i>
-                        <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 0.05em;">ROOT MONITORING @ LOCALHOST</span>
-                    </div>
-                    <div class="terminal-controls">
-                        <div class="control green" id="btn-admin-close" style="cursor: pointer;" title="Close Monitor"></div>
-                        <div class="control yellow"></div>
-                        <div class="control red"></div>
-                    </div>
+            <div class="chat-messages" id="chat-scroller"></div>
+            <div class="chat-input-row">
+                <div class="input-group">
+                    <input type="text" id="msg-input" placeholder="Write a message to the V-LAN..." autocomplete="off">
+                    <button class="btn-send" id="btn-broadcast"><i class="fas fa-paper-plane"></i></button>
                 </div>
-                <div id="admin-logs" class="terminal-body">
-                    <!-- Logs will be injected here -->
+                <div class="rename-hint"
+                    style="background: rgba(14, 165, 233, 0.05); padding: 8px; border-radius: var(--radius-sm); border-left: 3px solid var(--neon-blue);">
+                    <span style="font-weight: 700; color: var(--text-primary);">Use <b
+                            style="color: var(--neon-cyan);">/name &lt;your_name&gt;</b> to rename yourself</span>
                 </div>
             </div>
         </main>
 
-        <footer style="grid-area: footer; text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.7rem;">
-            &copy; 2026 Core-OS Distributed Systems &bull; High Reliability Node v2.4.0
-        </footer>
+        <!-- Users Sidebar -->
+        <aside class="glass-panel users-panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-user-group"></i> Connected Nodes</h2>
+                <span id="user-count-badge" class="badge-pulse" style="border-radius: 6px;">0</span>
+            </div>
+            <div class="user-list" id="user-container"></div>
+        </aside>
+
+        <!-- Terminal Logs -->
+        <section class="glass-panel admin-panel">
+            <div class="panel-header" style="background: #111; border-bottom: 2px solid #222;">
+                <h2 style="color: #60a5fa;"><i class="fas fa-terminal"></i> System Kernel Logs</h2>
+                <div style="display:flex; gap: 1rem;">
+                    <span style="font-size: 0.65rem; color: #4b5563;">Node ID: <span id="my-node-id"
+                            style="color:#9ca3af">Disconnected</span></span>
+                    <button id="auth-admin-btn"
+                        style="background:transparent; border:none; color:#f472b6; font-size:0.7rem; cursor:pointer; font-weight:700;">[MOUNT
+                        ADMIN]</button>
+                </div>
+            </div>
+            <div class="terminal" id="terminal-screen"></div>
+        </section>
     </div>
 
-    <!-- Socket.IO serves this automatically -->
+    <!-- Socket.IO & Logic -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
-/**
- * LAN Chat Terminal - Frontend Logic
- * High-performance, futuristic, and fully responsive.
- */
+        const socket = io(window.location.origin);
+        let myId = null;
+        let myUser = null;
+        let isDarkMode = true;
 
-const socket = io(window.location.origin);
-let myId = null;
-let isAdmin = false;
-let messageSoundEnabled = localStorage.getItem('sound_enabled') !== 'false';
+        // --- Selectors ---
+        const portal = document.getElementById('access-portal');
+        const mainUi = document.getElementById('main-interface');
+        const loader = document.getElementById('portal-loader');
 
-// DOM Elements
-const elements = {
-    themeToggle: document.getElementById('theme-toggle'),
-    soundToggle: document.getElementById('sound-toggle'),
-    chatMessages: document.getElementById('chat-messages'),
-    chatInput: document.getElementById('chat-input'),
-    btnSend: document.getElementById('btn-send'),
-    usersList: document.getElementById('users-list'),
-    usersCount: document.getElementById('users-count'),
-    adminTerminal: document.getElementById('admin-terminal'),
-    adminLogs: document.getElementById('admin-logs'),
-    btnAdminLogin: document.getElementById('btn-admin-login'),
-    btnAdminClose: document.getElementById('btn-admin-close'),
-    typingIndicator: document.getElementById('typing-indicator'),
-    connectionStatus: document.getElementById('connection-status'),
-    
-    // Stats
-    statThreadId: document.getElementById('stat-thread-id'),
-    statWorkerCount: document.getElementById('stat-worker-count'),
-    statTotalRequests: document.getElementById('stat-total-requests'),
-    statActiveNodes: document.getElementById('stat-active-nodes'),
-    
-    // Progress for active nodes
-    nodesProgress: document.getElementById('nodes-progress')
-};
+        const ssidIn = document.getElementById('ssid-input');
+        const passIn = document.getElementById('pass-input');
+        const joinBtn = document.getElementById('btn-establish');
 
-// --- Initialization ---
+        const msgIn = document.getElementById('msg-input');
+        const sendBtn = document.getElementById('btn-broadcast');
+        const chatBox = document.getElementById('chat-scroller');
+        const termScreen = document.getElementById('terminal-screen');
 
-// Theme Initialization
-const initTheme = () => {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-};
+        const threadDisplay = document.getElementById('thread-display');
+        const userContainer = document.getElementById('user-container');
 
-const toggleTheme = () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-};
+        // --- Counter Animation ---
+        function animateCount(id, end) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            const start = parseInt(obj.innerText.replace(/[^0-9]/g, '')) || 0;
+            if (start === end) return;
 
-// Sound Setup
-const playSound = (type = 'message') => {
-    if (!messageSoundEnabled) return;
-    const sounds = {
-        message: 'https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3',
-        notify: 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'
-    };
-    const audio = new Audio(sounds[type] || sounds.message);
-    audio.volume = 0.2;
-    audio.play().catch(() => {}); // Ignore interaction errors
-};
+            let current = start;
+            const range = end - start;
+            const stepTime = Math.abs(Math.floor(2000 / range));
+            const timer = setInterval(() => {
+                current += range > 0 ? 1 : -1;
+                obj.innerText = current;
+                if (current == end) clearInterval(timer);
+            }, Math.max(stepTime, 20));
+        }
 
-// --- Socket.IO Event Handlers ---
+        // --- Handlers ---
+        joinBtn.addEventListener('click', () => {
+            const ssid = ssidIn.value.trim();
+            const pass = passIn.value.trim();
+            if (!ssid || !pass) return alert("Credentials required for kernel link.");
 
-socket.on('connect', () => {
-    updateConnectionStatus(true);
-    console.log('[SYSTEM] Node Synchronized with Host');
-});
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                socket.emit('join_network', { ssid, password: pass });
+            }, 800);
+        });
 
-socket.on('disconnect', () => {
-    updateConnectionStatus(false);
-    console.warn('[SYSTEM] Node Connection Terminated');
-});
+        socket.on('network_joined', (data) => {
+            myId = data.id;
 
-socket.on('connect_error', (error) => {
-    console.error('[SYSTEM] Handshake Failed:', error.message);
-    updateConnectionStatus(false);
-});
+            portal.style.opacity = '0';
+            setTimeout(() => {
+                portal.style.display = 'none';
+                mainUi.classList.add('active');
+            }, 400);
 
-socket.on('init_config', (data) => {
-    myId = data.id;
-    animateCounter(elements.statThreadId, data.threadId, 'T-');
-    animateCounter(elements.statWorkerCount, data.threadCount);
-    
-    appendSystemMessage(`Connection established. Node identification: ${myId.substring(0, 8)}... assigned to Worker-${data.threadId}.`);
-});
+            document.getElementById('ui-ssid-display').innerText = `Network: ${data.ssid}`;
+            document.getElementById('ui-hash-display').innerText = `HASH: ${data.roomID}`;
+            document.getElementById('my-node-id').innerText = data.id.substring(0, 10);
 
-socket.on('update_stats', (stats) => {
-    animateCounter(elements.statTotalRequests, stats.totalRequests);
-    animateCounter(elements.statActiveNodes, stats.activeClients);
-    elements.usersCount.innerText = stats.activeClients;
-    
-    // Update progress bar (cap at some arbitrary max for visual effect)
-    const progress = Math.min((stats.activeClients / 20) * 100, 100);
-    elements.nodesProgress.style.width = `${progress}%`;
-    
-    renderUserList(stats.users);
-});
+            // Initial Chat State
+            const sysInitMsg = document.createElement('div');
+            sysInitMsg.className = 'system-msg';
+            sysInitMsg.style.opacity = '0.6';
+            sysInitMsg.style.margin = '2rem 0';
+            sysInitMsg.style.fontWeight = '500';
+            sysInitMsg.innerText = `[SYSTEM] Connected to Virtual LAN successfully`;
+            chatBox.appendChild(sysInitMsg);
 
-socket.on('chat_broadcast', (msg) => {
-    appendChatMessage(msg, msg.senderId === myId);
-    playSound('message');
-});
+            addKernelLog('SYSTEM', `Link established. Network: ${data.ssid}`);
+            addKernelLog('INFO', `Assigned Thread: Thread-0${data.threadId}`);
+        });
 
-socket.on('user_renamed', (data) => {
-    const isMe = data.id === myId;
-    appendSystemMessage(`${data.oldName} changed their name to ${data.newName}.`);
-    playSound('notify');
-});
+        socket.on('update_stats', (stats) => {
+            animateCount('stat-users', stats.activeClients);
+            animateCount('stat-requests', stats.totalRequests);
+            document.getElementById('stat-thread-pool').innerText = stats.threadCapacity || stats.threadPool.length;
+            document.getElementById('stat-hash').innerText = stats.networkHash.substring(0, 8).toUpperCase();
+            document.getElementById('user-count-badge').innerText = stats.activeClients;
 
-socket.on('admin_auth_success', (logs) => {
-    isAdmin = true;
-    elements.adminTerminal.style.display = 'flex';
-    elements.btnAdminLogin.style.display = 'none';
-    
-    elements.adminLogs.innerHTML = '';
-    logs.forEach(appendLog);
-    appendLog({ type: 'SYSTEM', message: 'Admin session authorized.', timestamp: new Date().toISOString() });
-});
+            renderThreads(stats.threadPool);
+            renderUsers(stats.users);
+        });
 
-socket.on('admin_auth_failed', (err) => {
-    alert('🚨 DECRYPTION FAILED\n' + err);
-});
+        socket.on('chat_broadcast', (msg) => {
+            appendMessage(msg, msg.senderId === myId);
+        });
 
-socket.on('server_log', (logEntry) => {
-    if (isAdmin) appendLog(logEntry);
-});
+        socket.on('server_log', (log) => {
+            addKernelLog(log.type, log.message, log.timestamp);
+        });
 
-// --- UI Helper Functions ---
+        socket.on('user_renamed', (data) => {
+            const systemMsg = document.createElement('div');
+            systemMsg.className = 'system-msg';
+            systemMsg.innerText = `Protocol Update: ${data.oldName} re-identified as ${data.newName}`;
+            chatBox.appendChild(systemMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
 
-const updateConnectionStatus = (online) => {
-    const dot = elements.connectionStatus.querySelector('.pulse-dot');
-    const text = elements.connectionStatus.querySelector('.status-text');
-    
-    if (online) {
-        text.innerText = 'System Online';
-        dot.style.backgroundColor = 'var(--neon-green)';
-    } else {
-        text.innerText = 'Connection Lost';
-        dot.style.backgroundColor = 'var(--neon-pink)';
-    }
-};
+        // --- UI Rendering ---
 
-const animateCounter = (el, target, prefix = '') => {
-    if (!el) return;
-    const current = parseInt(el.innerText.replace(/[^\d]/g, '')) || 0;
-    const duration = 1000;
-    const start = performance.now();
-    
-    const update = (now) => {
-        const elapsed = now - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        const value = Math.floor(current + (target - current) * easeOut);
-        
-        el.innerText = prefix + value;
-        
-        if (progress < 1) requestAnimationFrame(update);
-    };
-    
-    requestAnimationFrame(update);
-};
+        function renderThreads(pool) {
+            threadDisplay.innerHTML = '';
+            pool.forEach(t => {
+                const node = document.createElement('div');
+                node.className = `thread-node ${t.status === 'BUSY' ? 'active' : ''}`;
+                node.innerHTML = `
+                    <div class="thread-meta">
+                        <span class="thread-id">THREAD-${t.id < 10 ? '0' + t.id : t.id}</span>
+                        <span class="thread-status status-${t.status.toLowerCase()}">${t.status}</span>
+                    </div>
+                    <div class="thread-progress">
+                        <div class="thread-progress-bar"></div>
+                    </div>
+                `;
+                threadDisplay.appendChild(node);
+            });
+        }
 
-const renderUserList = (users) => {
-    elements.usersList.innerHTML = '';
-    users.forEach(u => {
-        const isMe = u.id === myId;
-        const initial = u.username.charAt(0).toUpperCase();
-        
-        const userDiv = document.createElement('div');
-        userDiv.className = `user-item ${isMe ? 'is-me' : ''}`;
-        userDiv.innerHTML = `
-            <div class="avatar">
-                ${initial}
-                <span class="status-indicator ${u.online !== false ? 'pulse' : ''}"></span>
-            </div>
-            <div class="user-info">
-                <div class="user-name">
-                    ${u.username} ${isMe ? '<span style="color:var(--neon-blue); font-size: 0.7rem;">(YOU)</span>' : ''}
+        function renderUsers(users) {
+            userContainer.innerHTML = '';
+            users.forEach(u => {
+                const card = document.createElement('div');
+                const isMe = u.id === myId;
+                card.className = `user-card ${isMe ? 'me' : ''}`;
+                card.innerHTML = `
+                    <div class="user-avatar">${u.username.charAt(0)}</div>
+                    <div class="user-info">
+                        <h4>${u.username} ${isMe ? '<span style="color:var(--neon-blue); font-size:0.6rem;">(SELF)</span>' : ''}</h4>
+                        <p>Proc: Thread-${u.threadId < 10 ? '0' + u.threadId : u.threadId}</p>
+                    </div>
+                `;
+                userContainer.appendChild(card);
+            });
+        }
+
+        function appendMessage(msg, isSelf) {
+            const wrap = document.createElement('div');
+            wrap.className = `msg-wrapper ${isSelf ? 'self' : ''}`;
+            wrap.innerHTML = `
+                <div class="msg-meta">
+                    <span class="msg-tag">[${msg.roomName}]</span>
+                    ${msg.senderName} • ${msg.timestamp}
                 </div>
-                <div class="user-details">Thread-0${u.threadId} ${u.isAdmin ? '• <span style="color:var(--neon-pink)">ADMIN</span>' : ''}</div>
-            </div>
-        `;
-        elements.usersList.appendChild(userDiv);
-    });
-};
+                <div class="msg-bubble">${msg.text}</div>
+            `;
+            chatBox.appendChild(wrap);
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-const appendChatMessage = (msg, isSelf) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = `message-wrapper ${isSelf ? 'self' : ''}`;
-    
-    const time = msg.timestamp || new Date().toLocaleTimeString('en-US', { hour12: false });
-    
-    wrapper.innerHTML = `
-        <div class="message-meta">
-            <span class="sender">${msg.senderName} (T-${msg.senderThread})</span>
-            <span class="time">${time}</span>
-        </div>
-        <div class="message-bubble">
-            ${msg.text}
-        </div>
-    `;
-    
-    elements.chatMessages.appendChild(wrapper);
-    scrollToBottom(elements.chatMessages);
-};
+            if (!isSelf) playSfx();
+        }
 
-const appendSystemMessage = (text) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'message-wrapper';
-    wrapper.style.alignSelf = 'center';
-    wrapper.style.opacity = '0.6';
-    
-    wrapper.innerHTML = `
-        <div class="message-bubble" style="background: transparent; border: none; font-size: 0.8rem; text-align: center;">
-            [SYSTEM] ${text}
-        </div>
-    `;
-    elements.chatMessages.appendChild(wrapper);
-    scrollToBottom(elements.chatMessages);
-};
+        function addKernelLog(type, msg, ts = new Date().toLocaleTimeString()) {
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `
+                <span class="log-ts">[${ts}]</span>
+                <span class="log-type ${type}">${type}</span>
+                <span class="log-msg">${msg}</span>
+            `;
+            termScreen.appendChild(line);
+            termScreen.scrollTop = termScreen.scrollHeight;
+        }
 
-const appendLog = (log) => {
-    const line = document.createElement('div');
-    line.className = 'log-line';
-    const time = log.timestamp ? log.timestamp.split('T')[1].split('.')[0] : new Date().toLocaleTimeString();
-    const typeClass = log.type.toLowerCase();
-    
-    line.innerHTML = `
-        <span class="time">[${time}]</span>
-        <span class="tag ${typeClass}">${log.type}</span>
-        <span class="message">${log.message}</span>
-    `;
-    
-    elements.adminLogs.appendChild(line);
-    scrollToBottom(elements.adminLogs);
-};
+        // --- Interactivity ---
 
-const scrollToBottom = (el) => {
-    el.scrollTo({
-        top: el.scrollHeight,
-        behavior: 'smooth'
-    });
-};
+        function handleSend() {
+            const val = msgIn.value.trim();
+            if (!val) return;
 
-const sendMessage = () => {
-    const text = elements.chatInput.value.trim();
-    if (!text) return;
-    
-    if (text.startsWith('/name ')) {
-        const newName = text.replace('/name ', '').trim();
-        if (newName) socket.emit('set_username', newName);
-    } else if (text === '/clear') {
-        elements.chatMessages.innerHTML = '';
-        appendSystemMessage('Terminal cleared.');
-    } else {
-        socket.emit('chat_message', text);
-    }
-    
-    elements.chatInput.value = '';
-    elements.chatInput.focus();
-};
+            if (val.startsWith('/name ')) {
+                const newName = val.replace('/name ', '').trim();
+                if (newName) socket.emit('set_username', newName);
+            } else {
+                socket.emit('chat_message', val);
+            }
+            msgIn.value = '';
+        }
 
-const toggleSound = () => {
-    messageSoundEnabled = !messageSoundEnabled;
-    localStorage.setItem('sound_enabled', messageSoundEnabled);
-    updateSoundUI();
-};
+        sendBtn.addEventListener('click', handleSend);
+        msgIn.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
 
-const updateSoundUI = () => {
-    const icon = elements.soundToggle.querySelector('i');
-    if (messageSoundEnabled) {
-        elements.soundToggle.classList.remove('muted');
-        icon.className = 'fas fa-volume-up';
-    } else {
-        elements.soundToggle.classList.add('muted');
-        icon.className = 'fas fa-volume-mute';
-    }
-};
+        document.getElementById('btn-terminate').addEventListener('click', () => {
+            socket.emit('leave_network');
+            location.reload();
+        });
 
-// --- Event Listeners ---
+        document.getElementById('auth-admin-btn').addEventListener('click', () => {
+            const pass = prompt("Enter Administration Key:");
+            if (pass) socket.emit('auth_admin', pass);
+        });
 
-elements.themeToggle.addEventListener('click', toggleTheme);
-elements.soundToggle.addEventListener('click', toggleSound);
+        socket.on('admin_auth_success', (logs) => {
+            alert("Admin Escalation Successful. Kernel Access Granted.");
+            termScreen.innerHTML = ''; // Clear for fresh admin logs
+            logs.forEach(l => addKernelLog(l.type, l.message, l.timestamp));
+        });
 
-elements.btnSend.addEventListener('click', sendMessage);
+        socket.on('admin_auth_failed', (msg) => alert(msg));
 
-elements.chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-});
+        // --- Theme Toggle ---
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            document.getElementById('theme-toggle').innerHTML = isDarkMode ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        });
 
-elements.btnAdminLogin.addEventListener('click', () => {
-    if (!isAdmin) {
-        const pwd = prompt('Authorization Required. Enter Decryption Key:');
-        if (pwd) socket.emit('auth_admin', pwd);
-    } else {
-        elements.adminTerminal.style.display = 'flex';
-    }
-});
-
-elements.btnAdminClose.addEventListener('click', () => {
-    elements.adminTerminal.style.display = 'none';
-    elements.btnAdminLogin.style.display = 'block';
-});
-
-// Setup Initial State
-initTheme();
-updateSoundUI();
-appendSystemMessage('Initializing core modules... System ready.');
-updateConnectionStatus(socket.connected);
+        function playSfx() {
+            try {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+                audio.volume = 0.15;
+                audio.play();
+            } catch (e) { }
+        }
     </script>
 </body>
+
 </html>
