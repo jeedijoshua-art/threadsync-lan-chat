@@ -118,11 +118,11 @@
             }
         }
 
-        /* --- Layout Grid --- */
+        /* --- Responsive Master Grid --- */
         .app-wrapper {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: clamp(1rem, 2vw, 1.5rem);
             display: grid;
             grid-template-areas:
                 "header header header"
@@ -130,7 +130,7 @@
                 "threads chat users"
                 "admin admin admin";
             grid-template-columns: 320px 1fr 300px;
-            gap: 1.5rem;
+            gap: clamp(1rem, 1.5vw, 1.5rem);
             opacity: 0;
             filter: blur(20px);
             transition: opacity 0.8s, filter 0.8s;
@@ -141,27 +141,15 @@
             filter: blur(0);
         }
 
-        /* --- Orientation & Responsiveness --- */
-        @media (max-width: 1400px) {
+        /* Desktop Adjustments */
+        @media (max-width: 1440px) {
             .app-wrapper {
                 grid-template-columns: 280px 1fr 280px;
             }
         }
 
-        @media (max-width: 1200px) {
-            .app-wrapper {
-                grid-template-areas:
-                    "header header"
-                    "stats stats"
-                    "threads users"
-                    "chat chat"
-                    "admin admin";
-                grid-template-columns: 320px 1fr;
-            }
-        }
-
-        /* Portrait Tablet & Large Mobile */
-        @media (max-width: 1024px) and (orientation: portrait) {
+        /* --- Tablet Tier (481px - 1024px) --- */
+        @media (max-width: 1024px) {
             .app-wrapper {
                 grid-template-areas:
                     "header header"
@@ -171,73 +159,100 @@
                     "admin admin";
                 grid-template-columns: 1fr 1fr;
             }
-        }
-
-        /* Mobile Landscape (Critical Height Fix) */
-        @media (max-height: 600px) and (orientation: landscape) {
-            .app-wrapper {
-                padding: 0.75rem;
-                grid-template-areas:
-                    "header header"
-                    "stats stats"
-                    "threads chat"
-                    "admin admin";
-                grid-template-columns: 1fr 1.5fr;
-                gap: 0.75rem;
-            }
 
             .stats-grid {
-                gap: 0.75rem;
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .stat-card {
-                padding: 0.75rem;
-            }
-
-            .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .stat-data .val {
-                font-size: 1.25rem;
-            }
-
-            header {
-                padding: 0.5rem 0;
-                margin-bottom: 0;
-            }
-
-            .logo-box {
-                width: 40px;
-                height: 40px;
-                font-size: 1.25rem;
-            }
-
-            .chat-panel {
-                min-height: 300px;
-            }
-
-            .admin-panel {
-                margin-top: 0.5rem;
-            }
-
-            .terminal {
-                height: 150px;
+            .thread-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        /* Mobile Portrait Stack */
-        @media (max-width: 768px) and (orientation: portrait) {
+        /* --- Mobile Tier (<= 480px) --- */
+        @media (max-width: 480px) {
             .app-wrapper {
-                grid-template-areas: "header" "stats" "threads" "chat" "users" "admin";
+                grid-template-areas:
+                    "header"
+                    "stats"
+                    "chat"
+                    "threads"
+                    "users"
+                    "admin";
                 grid-template-columns: 1fr;
                 padding: 1rem;
             }
 
             .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .thread-grid {
+                grid-template-columns: 1fr;
+                max-height: 400px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+                align-items: center;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .net-info {
+                text-align: center;
+                width: 100%;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .chat-messages {
+                padding: 1rem;
+            }
+
+            .msg-wrapper {
+                max-width: 95%;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .btn-send {
+                width: 100%;
+            }
+
+            .logo-box {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+
+            .brand-text h1 {
+                font-size: clamp(1.1rem, 5vw, 1.4rem);
+            }
+        }
+
+        /* Orientation Specific Fine-tuning */
+        @media (orientation: landscape) and (max-height: 500px) {
+            header {
+                padding: 0.5rem 0;
+            }
+
+            .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chat-panel {
+                min-height: 350px;
             }
         }
 
@@ -400,6 +415,26 @@
         .btn-theme:hover {
             transform: rotate(15deg);
             border-color: var(--neon-gold);
+        }
+
+        .btn-sound {
+            background: var(--bg-accent);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-sound:hover {
+            transform: scale(1.1);
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
         }
 
         /* --- Stats Dashboard --- */
@@ -1087,6 +1122,7 @@
                         Network: OFFLINE</div>
                     <div id="ui-hash-display" class="hash">HASH: ----------------</div>
                 </div>
+                <button class="btn-sound" id="sound-toggle"><i class="fas fa-volume-up"></i></button>
                 <button class="btn-theme" id="theme-toggle"><i class="fas fa-moon"></i></button>
                 <button class="btn-leave" id="btn-terminate">Leave</button>
             </div>
@@ -1188,6 +1224,13 @@
         let myId = null;
         let myUser = null;
         let isDarkMode = true;
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let audioUnlocked = false;
+
+        // Preload Notification Sound
+        const notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+        notificationAudio.preload = 'auto';
+        notificationAudio.volume = 1.0;
 
         // --- Selectors ---
         const portal = document.getElementById('access-portal');
@@ -1396,12 +1439,58 @@
             document.getElementById('theme-toggle').innerHTML = isDarkMode ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
         });
 
+        // --- Audio Management ---
+        const soundToggle = document.getElementById('sound-toggle');
+
+        function updateSoundIcon() {
+            soundToggle.innerHTML = soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+        }
+
+        updateSoundIcon();
+
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled);
+            updateSoundIcon();
+        });
+
+        // Browser Audio "Unlock" Mechanism (Requirement for Mobile/Modern Browsers)
+        const unlockAudio = () => {
+            if (audioUnlocked) return;
+            // Play a silent cycle to unlock the audio context
+            notificationAudio.play().then(() => {
+                notificationAudio.pause();
+                notificationAudio.currentTime = 0;
+                audioUnlocked = true;
+                addKernelLog('SYSTEM', 'Audio Engine Unlocked.');
+                document.body.removeEventListener('click', unlockAudio);
+                document.body.removeEventListener('touchstart', unlockAudio);
+            }).catch(e => {
+                console.log("Audio unlock attempted but failed:", e);
+            });
+        };
+
+        document.body.addEventListener('click', unlockAudio);
+        document.body.addEventListener('touchstart', unlockAudio);
+
         function playSfx() {
+            if (!soundEnabled) return;
+            
             try {
-                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-                audio.volume = 0.15;
-                audio.play();
-            } catch (e) { }
+                // Clone the node to allow simultaneous playback (concurrency)
+                const sound = notificationAudio.cloneNode();
+                sound.volume = 1.0; // MAX Volume as requested
+                sound.currentTime = 0;
+                
+                const playPromise = sound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("Playback prevented or failed:", error);
+                    });
+                }
+            } catch (err) {
+                console.error("Audio Engine Error:", err);
+            }
         }
     </script>
 </body>
