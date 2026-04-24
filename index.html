@@ -66,6 +66,13 @@
             font-family: 'Outfit', sans-serif;
             overflow-x: hidden;
             min-height: 100vh;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 2vw, 1.5rem);
         }
 
         /* --- Background Effects --- */
@@ -123,7 +130,7 @@
             max-width: 1600px;
             margin: 0 auto;
             padding: clamp(1rem, 2vw, 1.5rem);
-            display: grid;
+            display: none;
             grid-template-areas:
                 "header header header"
                 "stats stats stats"
@@ -137,8 +144,177 @@
         }
 
         .app-wrapper.active {
+            display: grid;
             opacity: 1;
             filter: blur(0);
+        }
+
+        .landing-page {
+            padding: clamp(2rem, 4vw, 3rem) 0 1.5rem;
+        }
+
+        .landing-hero {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.5rem;
+            align-items: stretch;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-panel {
+            padding: clamp(1.5rem, 3vw, 2.4rem);
+        }
+
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--neon-cyan);
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.35rem;
+            max-width: 62ch;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-btn {
+            border: 1px solid var(--glass-border);
+            background: var(--bg-accent);
+            color: var(--text-primary);
+            border-radius: 999px;
+            padding: 0.72rem 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--neon-blue);
+        }
+
+        .hero-btn.primary {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 10px 24px rgba(14, 165, 233, 0.28);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card {
+            padding: 1rem;
+        }
+
+        .feature-card i {
+            font-size: 1.2rem;
+            color: var(--neon-blue);
+            margin-bottom: 0.65rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.45rem;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .howto-panel {
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+            margin-bottom: 0.95rem;
+        }
+
+        .steps-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+        }
+
+        .steps-list li {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 0.9rem;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+        }
+
+        .steps-list strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .screenshots-panel {
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .shot-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .shot-card {
+            overflow: hidden;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .shot-card img {
+            width: 100%;
+            display: block;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+        }
+
+        .shot-card figcaption {
+            padding: 0.7rem 0.8rem;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
         }
 
         /* Desktop Adjustments */
@@ -150,6 +326,22 @@
 
         /* --- Tablet Tier (481px - 1024px) --- */
         @media (max-width: 1024px) {
+            .landing-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .steps-list {
+                grid-template-columns: 1fr;
+            }
+
+            .shot-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
             .app-wrapper {
                 grid-template-areas:
                     "header header"
@@ -171,6 +363,26 @@
 
         /* --- Mobile Tier (<= 480px) --- */
         @media (max-width: 480px) {
+            .landing-page {
+                padding-top: 1.4rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .hero-btn {
+                justify-content: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .shot-grid {
+                grid-template-columns: 1fr;
+            }
+
             .app-wrapper {
                 grid-template-areas:
                     "header"
@@ -606,16 +818,20 @@
             display: flex;
             flex-direction: column;
             min-height: 500px;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .chat-messages {
             flex: 1;
             padding: 1.5rem;
             overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             gap: 1rem;
             scroll-behavior: smooth;
+            max-height: clamp(320px, 48vh, 620px);
         }
 
         .msg-wrapper {
@@ -656,6 +872,9 @@
             background: var(--bg-accent);
             border: 1px solid var(--glass-border);
             position: relative;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: pre-wrap;
         }
 
         .self .msg-bubble {
@@ -706,7 +925,7 @@
             border: 1px solid var(--glass-border);
             padding: 1rem 1.25rem;
             border-radius: var(--radius-md);
-            color: white;
+            color: var(--text-primary);
             outline: none;
             transition: var(--transition);
         }
@@ -881,14 +1100,12 @@
 
         /* --- Access Portal --- */
         #access-portal {
-            position: fixed;
-            inset: 0;
-            z-index: 5000;
+            position: relative;
+            z-index: 2;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(2, 6, 23, 0.8);
-            backdrop-filter: blur(40px);
+            margin-bottom: 2rem;
             transition: var(--transition);
         }
 
@@ -1073,6 +1290,86 @@
         <div class="orb orb-3"></div>
     </div>
 
+    <!-- Landing Page -->
+    <section class="landing-page container" id="landing-page">
+        <div class="landing-hero">
+            <div class="glass-panel hero-panel">
+                <div class="hero-kicker"><i class="fas fa-satellite-dish"></i> LAN Simulation Console</div>
+                <h1 class="hero-title">ThreadSync LAN Chat for Multithreading Demonstrations</h1>
+                <p class="hero-subtitle">A real-time chat web app that visualizes thread assignment, active users, synchronization stats, and event logs while users communicate in room-isolated channels.</p>
+                <div class="hero-actions">
+                    <button class="hero-btn primary" id="open-access-portal"><i class="fas fa-plug"></i> Connect to Network</button>
+                    <a class="hero-btn" href="#how-to-use"><i class="fas fa-list-check"></i> How to Use</a>
+                </div>
+            </div>
+            <div class="glass-panel hero-panel">
+                <h2 class="section-title">Key Features</h2>
+                <div class="features-grid" style="margin-bottom:0;">
+                    <article class="feature-card glass-panel">
+                        <i class="fas fa-message"></i>
+                        <h3>Real-Time Messaging</h3>
+                        <p>Low-latency message broadcasting over Socket.IO with sender tags and timestamps.</p>
+                    </article>
+                    <article class="feature-card glass-panel">
+                        <i class="fas fa-microchip"></i>
+                        <h3>Thread Visualization</h3>
+                        <p>Live thread pool state indicators show idle and busy execution paths.</p>
+                    </article>
+                    <article class="feature-card glass-panel">
+                        <i class="fas fa-users"></i>
+                        <h3>Presence Tracking</h3>
+                        <p>Connected nodes list updates instantly with user identity and assigned thread ID.</p>
+                    </article>
+                    <article class="feature-card glass-panel">
+                        <i class="fas fa-terminal"></i>
+                        <h3>Kernel Logs</h3>
+                        <p>Operational logs display system, chat, and warning events in a terminal-style view.</p>
+                    </article>
+                    <article class="feature-card glass-panel">
+                        <i class="fas fa-user-pen"></i>
+                        <h3>Command Rename</h3>
+                        <p>Users can rename themselves in-chat using the /name command format.</p>
+                    </article>
+                    <article class="feature-card glass-panel">
+                        <i class="fas fa-mobile-screen"></i>
+                        <h3>Responsive Layout</h3>
+                        <p>Dashboard adapts to desktop, tablet, and mobile with stacked interaction panels.</p>
+                    </article>
+                </div>
+            </div>
+        </div>
+
+        <section class="glass-panel howto-panel" id="how-to-use">
+            <h2 class="section-title">How to Use</h2>
+            <ol class="steps-list">
+                <li><strong>1. Start the server</strong>Run node server.js (or npm start) and open http://localhost:3000 in one or more browsers on your LAN.</li>
+                <li><strong>2. Enter credentials</strong>Provide any SSID and password in the V-LAN access card to establish a room-isolated session.</li>
+                <li><strong>3. Send and receive chat</strong>Type in the message box and press Enter or send. New messages auto-scroll in the feed.</li>
+                <li><strong>4. Rename your node</strong>Use /name your_name in the chat input to update your display name instantly.</li>
+                <li><strong>5. Observe synchronization</strong>Track active users, request count, thread states, and network hash in real time.</li>
+                <li><strong>6. Review system logs</strong>Use the kernel logs panel to inspect chat and system events during your demo session.</li>
+            </ol>
+        </section>
+
+        <section class="glass-panel screenshots-panel">
+            <h2 class="section-title">Screenshots</h2>
+            <div class="shot-grid">
+                <figure class="shot-card">
+                    <img src="assets/screenshots/connect-network.svg" alt="Screenshot of V-LAN connect screen">
+                    <figcaption>Connection flow: enter SSID and security key to join the isolated room.</figcaption>
+                </figure>
+                <figure class="shot-card">
+                    <img src="assets/screenshots/chat-dashboard.svg" alt="Screenshot of chat dashboard">
+                    <figcaption>Main dashboard: statistics, thread allocator, chat feed, users, and logs.</figcaption>
+                </figure>
+                <figure class="shot-card">
+                    <img src="assets/screenshots/mobile-view.svg" alt="Screenshot of responsive mobile layout">
+                    <figcaption>Mobile view: stacked interface designed for smaller screens and touch input.</figcaption>
+                </figure>
+            </div>
+        </section>
+    </section>
+
     <!-- Access Portal -->
     <div id="access-portal">
         <div class="portal-card glass-panel">
@@ -1234,6 +1531,8 @@
 
         // --- Selectors ---
         const portal = document.getElementById('access-portal');
+        const landingPage = document.getElementById('landing-page');
+        const openPortalBtn = document.getElementById('open-access-portal');
         const mainUi = document.getElementById('main-interface');
         const loader = document.getElementById('portal-loader');
 
@@ -1267,6 +1566,10 @@
         }
 
         // --- Handlers ---
+        openPortalBtn.addEventListener('click', () => {
+            portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
         joinBtn.addEventListener('click', () => {
             const ssid = ssidIn.value.trim();
             const pass = passIn.value.trim();
@@ -1282,8 +1585,10 @@
             myId = data.id;
 
             portal.style.opacity = '0';
+            landingPage.style.opacity = '0';
             setTimeout(() => {
                 portal.style.display = 'none';
+                landingPage.style.display = 'none';
                 mainUi.classList.add('active');
             }, 400);
 

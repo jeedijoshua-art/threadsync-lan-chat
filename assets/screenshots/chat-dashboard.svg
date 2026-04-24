@@ -1,0 +1,35 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Chat dashboard screenshot</title>
+  <desc id="desc">Illustrative screenshot of the thread sync chat dashboard with stats and messages.</desc>
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#081220"/>
+      <stop offset="100%" stop-color="#161b33"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg2)"/>
+
+  <rect x="50" y="32" width="1100" height="72" rx="14" fill="#1d2742" stroke="#2d4f77"/>
+  <text x="80" y="78" font-family="Segoe UI, sans-serif" font-size="28" fill="#cce8ff" font-weight="700">Multithreading Web Server Dashboard</text>
+
+  <rect x="50" y="130" width="260" height="90" rx="12" fill="#10253f"/>
+  <rect x="330" y="130" width="260" height="90" rx="12" fill="#10253f"/>
+  <rect x="610" y="130" width="260" height="90" rx="12" fill="#10253f"/>
+  <rect x="890" y="130" width="260" height="90" rx="12" fill="#10253f"/>
+
+  <rect x="50" y="245" width="260" height="425" rx="16" fill="#0d2038" stroke="#24456a"/>
+  <rect x="330" y="245" width="560" height="425" rx="16" fill="#0d2038" stroke="#24456a"/>
+  <rect x="910" y="245" width="240" height="425" rx="16" fill="#0d2038" stroke="#24456a"/>
+
+  <text x="72" y="278" font-family="Segoe UI, sans-serif" font-size="18" fill="#8bb8e0">Thread Allocation</text>
+  <text x="352" y="278" font-family="Segoe UI, sans-serif" font-size="18" fill="#8bb8e0">Private Network Feed</text>
+  <text x="932" y="278" font-family="Segoe UI, sans-serif" font-size="18" fill="#8bb8e0">Connected Nodes</text>
+
+  <rect x="354" y="302" width="360" height="64" rx="12" fill="#142b49"/>
+  <rect x="470" y="382" width="380" height="64" rx="12" fill="#00b4d8"/>
+  <rect x="354" y="462" width="300" height="64" rx="12" fill="#142b49"/>
+  <rect x="354" y="560" width="510" height="54" rx="11" fill="#1a3558"/>
+  <text x="380" y="341" font-family="Segoe UI, sans-serif" font-size="20" fill="#cbe6ff">Hello from client thread 04</text>
+  <text x="495" y="421" font-family="Segoe UI, sans-serif" font-size="20" fill="#00394d">/name roshan-node</text>
+  <text x="380" y="501" font-family="Segoe UI, sans-serif" font-size="20" fill="#cbe6ff">Message delivery acknowledged</text>
+</svg>
