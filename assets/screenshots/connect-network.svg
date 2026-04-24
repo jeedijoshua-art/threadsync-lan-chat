@@ -1,0 +1,28 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Connect to Network screen</title>
+  <desc id="desc">Illustrative screenshot showing the secure network connect card.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#041526"/>
+      <stop offset="100%" stop-color="#0f1b3d"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#48cae4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <circle cx="180" cy="120" r="180" fill="#00b4d8" opacity="0.12"/>
+  <circle cx="1030" cy="620" r="240" fill="#4361ee" opacity="0.12"/>
+
+  <rect x="360" y="110" width="480" height="500" rx="26" fill="#0a1a31" stroke="#2d4f77"/>
+  <rect x="390" y="160" width="420" height="56" rx="10" fill="#122947"/>
+  <rect x="390" y="252" width="420" height="56" rx="10" fill="#122947"/>
+  <rect x="390" y="356" width="420" height="62" rx="12" fill="url(#accent)"/>
+
+  <text x="600" y="145" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="32" fill="#cde9ff" font-weight="700">V-LAN Access</text>
+  <text x="410" y="196" font-family="Segoe UI, sans-serif" font-size="19" fill="#7fb0d9">Network SSID</text>
+  <text x="410" y="288" font-family="Segoe UI, sans-serif" font-size="19" fill="#7fb0d9">Security Key</text>
+  <text x="600" y="397" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="22" fill="#001b2a" font-weight="700">Establish Node Link</text>
+  <text x="600" y="462" text-anchor="middle" font-family="Consolas, monospace" font-size="17" fill="#8eb4d9">256-bit Room-Isolated Synchronization Layer</text>
+</svg>

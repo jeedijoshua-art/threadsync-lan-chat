@@ -1,0 +1,51 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare backup folder
+        run: mkdir -p backups
+
+      - name: Download database snapshot from Render
+        env:
+          BACKUP_URL: ${{ secrets.RENDER_DB_BACKUP_URL }}
+          BACKUP_TOKEN: ${{ secrets.RENDER_DB_BACKUP_TOKEN }}
+        run: |
+          if [ -z "$BACKUP_URL" ]; then
+            echo "RENDER_DB_BACKUP_URL is missing"
+            exit 1
+          fi
+
+          if [ -z "$BACKUP_TOKEN" ]; then
+            echo "RENDER_DB_BACKUP_TOKEN is missing"
+            exit 1
+          fi
+
+          curl -fsSL \
+            -H "x-backup-token: $BACKUP_TOKEN" \
+            "$BACKUP_URL" \
+            -o backups/chat.db
+
+      - name: Create backup metadata
+        run: |
+          echo "BACKUP_DATE=$(date -u +'%Y-%m-%d')" >> "$GITHUB_ENV"
+          echo "BACKUP_TAG=db-backup-$(date -u +'%Y-%m-%d-%H%M%S')" >> "$GITHUB_ENV"
+
+      - name: Publish backup release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.BACKUP_TAG }}
+          name: Database Backup ${{ env.BACKUP_DATE }}
+          files: backups/chat.db
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
